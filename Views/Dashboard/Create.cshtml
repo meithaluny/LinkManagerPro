@@ -1,0 +1,48 @@
+@model LinkManagerPro.Models.Link
+
+@{
+    ViewData["Title"] = "إنشاء رابط جديد";
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1>إنشاء رابط جديد</h1>
+
+        <form asp-controller="Dashboard" asp-action="Create" method="post">
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label">العنوان</label>
+                <input asp-for="Title" class="form-control" required />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">الوصف</label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ImageUrl" class="form-label">رابط الصورة</label>
+                <input asp-for="ImageUrl" class="form-control" type="url" required />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="RedirectUrl" class="form-label">الرابط الخارجي</label>
+                <input asp-for="RedirectUrl" class="form-control" type="url" required />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Store" class="form-label">المتجر</label>
+                <select asp-for="Store" class="form-control" required>
+                    <option value="">اختر متجراً</option>
+                    <option value="Shein">شي إن</option>
+                    <option value="Temu">تيمو</option>
+                    <option value="Noon">نون</option>
+                    <option value="Amazon">أمازون</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">حفظ</button>
+            <a href="@Url.Action("Index")" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
