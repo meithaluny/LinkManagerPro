@@ -34,6 +34,12 @@ namespace LinkManagerPro.Data
             modelBuilder.Entity<Click>()
                 .Property(c => c.ClickedAt)
                 .HasColumnType("timestamp with time zone");
+
+            // Foreign Key
+            modelBuilder.Entity<Link>()
+                .HasOne(l => l.User)
+                .WithMany(u => u.Links)
+                .HasForeignKey(l => l.UserId);
         }
     }
 }
