@@ -43,26 +43,26 @@ using (var scope = app.Services.CreateScope())
     db.Database.EnsureCreated();
 }
 // Create database and seed default user
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.EnsureCreated();
+//using (var scope = app.Services.CreateScope())
+//{
+//    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+//    db.Database.EnsureCreated();
 
-    // إنشاء مستخدم افتراضي إذا لم يكن موجوداً
-    if (!db.Users.Any())
-    {
-        var defaultUser = new User
-        {
-            Id = 1,
-            Username = "Admin",
-            Email = "admin@example.com",
-            PasswordHash = "hashed_password",
-            CreatedAt = DateTime.UtcNow
-        };
-        db.Users.Add(defaultUser);
-        db.SaveChanges();
-    }
-}
+//    // إنشاء مستخدم افتراضي إذا لم يكن موجوداً
+//    if (!db.Users.Any())
+//    {
+//        var defaultUser = new User
+//        {
+//            Id = 1,
+//            Username = "Admin",
+//            Email = "admin@example.com",
+//            PasswordHash = "hashed_password",
+//            CreatedAt = DateTime.UtcNow
+//        };
+//        db.Users.Add(defaultUser);
+//        db.SaveChanges();
+//    }
+//}
 
 
 
