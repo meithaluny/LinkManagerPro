@@ -1,4 +1,4 @@
-using LinkManagerPro.Models;
+﻿using LinkManagerPro.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LinkManagerPro.Data
@@ -18,45 +18,22 @@ namespace LinkManagerPro.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure User
-            modelBuilder.Entity<User>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.Username).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.PasswordHash).IsRequired();
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("datetime('now')");
-            });
+            // تحويل DateTime إلى timestamp with time zone
+            modelBuilder.Entity<User>()
+                .Property(u => u.CreatedAt)
+                .HasColumnType("timestamp with time zone");
 
-            // Configure Link
-            modelBuilder.Entity<Link>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.Property(e => e.ImageUrl).IsRequired();
-                entity.Property(e => e.RedirectUrl).IsRequired();
-                entity.Property(e => e.Slug).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.Store).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("datetime('now')");
-                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("datetime('now')");
-                entity.HasIndex(e => e.Slug).IsUnique();
-                entity.HasOne(e => e.User)
-                    .WithMany(u => u.Links)
-                    .HasForeignKey(e => e.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+            modelBuilder.Entity<Link>()
+                .Property(l => l.CreatedAt)
+                .HasColumnType("timestamp with time zone");
 
-            // Configure Click
-            modelBuilder.Entity<Click>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.ClickedAt).HasDefaultValueSql("datetime('now')");
-                entity.HasOne(e => e.Link)
-                    .WithMany(l => l.Clicks)
-                    .HasForeignKey(e => e.LinkId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+            modelBuilder.Entity<Link>()
+                .Property(l => l.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<Click>()
+                .Property(c => c.ClickedAt)
+                .HasColumnType("timestamp with time zone");
         }
     }
 }
