@@ -1,4 +1,5 @@
-using LinkManagerPro.Data;
+﻿using LinkManagerPro.Data;
+using LinkManagerPro.Models;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,5 +42,28 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.EnsureCreated();
 }
+// Create database and seed default user
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.EnsureCreated();
+
+    // إنشاء مستخدم افتراضي إذا لم يكن موجوداً
+    if (!db.Users.Any())
+    {
+        var defaultUser = new User
+        {
+            Id = 1,
+            Username = "Admin",
+            Email = "admin@example.com",
+            PasswordHash = "hashed_password",
+            CreatedAt = DateTime.UtcNow
+        };
+        db.Users.Add(defaultUser);
+        db.SaveChanges();
+    }
+}
+
+
 
 app.Run();
