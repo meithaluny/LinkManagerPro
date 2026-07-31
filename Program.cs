@@ -1,7 +1,5 @@
 ﻿using LinkManagerPro.Data;
-using LinkManagerPro.Models;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,8 +32,5 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-// رسالة الترحيب
-app.MapGet("/", () => "LinkManagerPro API is running! Visit /Home/Index");
 
 app.Run();
