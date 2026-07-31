@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = @Model.Title;
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -72,9 +73,9 @@
 
     <script>
         // إعادة التوجيه التلقائي بعد ثانية واحدة 
-        setTimeout(() => {
-            window.location.href = "@Model.RedirectUrl";
-        }, 10);
+        // setTimeout(() => {
+        //     window.location.href = "@Model.RedirectUrl";
+        // }, 10);
     </script>
 </body>
 </html>
