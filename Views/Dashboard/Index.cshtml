@@ -34,7 +34,10 @@
                                 <a href="@Url.Action("Index", "Redirect", new { slug = link.Slug })" target="_blank">
                                     <code>@Url.Action("Index", "Redirect", new { slug = link.Slug })</code>
                                 </a>
-                                <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('@Url.Action("Index", "Redirect", new { slug = link.Slug })')">
+                                @* <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('@Url.Action("Index", "Redirect", new { slug = link.Slug })')">
+                                    📋 نسخ
+                                </button> *@
+                                <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('@Url.Action("Index", "Redirect", new { slug = link.Slug }, Context.Request.Scheme)')" ">
                                     📋 نسخ
                                 </button>
                             </td>

@@ -70,13 +70,19 @@ namespace LinkManagerPro.Controllers
         public async Task<IActionResult> Edit(int id, Link link)
         {
             if (id != link.Id)
-            {
                 return NotFound();
-            }
+
+            ModelState.Remove("User");
+            ModelState.Remove("Slug");
+            ModelState.Remove("ClickCount");
+            ModelState.Remove("Clicks");
 
             if (ModelState.IsValid)
             {
                 link.UpdatedAt = DateTime.UtcNow;
+                link.CreatedAt = DateTime.SpecifyKind(
+                    link.CreatedAt,DateTimeKind.Utc);
+
                 _context.Update(link);
                 await _context.SaveChangesAsync();
 
