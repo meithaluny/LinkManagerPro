@@ -1,7 +1,8 @@
-using LinkManagerPro.Data;
+﻿using LinkManagerPro.Data;
 using LinkManagerPro.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Json;
 
 namespace LinkManagerPro.Controllers
 {
@@ -24,30 +25,57 @@ namespace LinkManagerPro.Controllers
                 return NotFound();
             }
 
-            // 1. ??? ??? IP ??????? (????? ???? ???? ????? Program.cs)
-            string realIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            // 1. جلب الـ IP الحقيقي (سيعمل بفضل تعديل Program.cs السابق)
+            string? realIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
-            // 2. ????? ??? User Agent ?????? ??????? (??????/????????)
+            // 2. تحليل الـ User Agent لمعرفة التطبيق
             string ua = Request.Headers["User-Agent"].ToString();
             string platformInfo = "";
             if (ua.Contains("FB4A") || ua.Contains("FB_IAB")) platformInfo = " [Facebook App]";
             else if (ua.Contains("Instagram")) platformInfo = " [Instagram App]";
 
-            // 3. ????? ??????
+            // 3. جلب اسم البلد
+            // نحاول أولاً جلب البلد من Cloudflare/Render إذا كان متوفراً (سريع جداً)
+            string country = Request.Headers["cf-ipcountry"].FirstOrDefault()
+                             ?? Request.Headers["X-Vercel-IP-Country"].FirstOrDefault()
+                             ?? "Unknown";
+
+            // إذا لم نجد البلد وكان الـ IP حقيقياً، نستخدم API خارجي بسيط
+            if (country == "Unknown" && !string.IsNullOrEmpty(realIp) && realIp != "::1" && realIp != "127.0.0.1")
+            {
+                try
+                {
+                    using (var client = new HttpClient())
+                    {
+                        client.Timeout = TimeSpan.FromSeconds(2); // مهلة قصيرة لضمان عدم تأخير الزائر
+                        var result = await client.GetFromJsonAsync<IpInfo>($"http://ip-api.com/json/{realIp}");
+                        if (result != null && result.status == "success")
+                        {
+                            country = result.country;
+                        }
+                    }
+                }
+                catch
+                {
+                    // في حال فشل الـ API، نترك البلد "Unknown" لكي لا يتوقف الموقع عن العمل
+                }
+            }
+
+            // 4. تسجيل النقرة مع البيانات الجديدة
             var click = new Click
             {
                 LinkId = link.Id,
                 ClickedAt = DateTime.UtcNow,
-                // ????? ??? UA ?????? ????? ?????? ??? ??????? ???????
                 UserAgent = ua + platformInfo,
-                IpAddress = realIp
+                IpAddress = realIp,
+                Country = country // القيمة الجديدة التي أضفتها أنت
             };
 
             link.ClickCount++;
             _context.Clicks.Add(click);
             await _context.SaveChangesAsync();
 
-            // ????? ?????? Open Graph
+            // إعداد علامات Open Graph
             ViewData["Title"] = link.Title;
             ViewData["Description"] = link.Description;
             ViewData["ImageUrl"] = link.ImageUrl;
@@ -89,5 +117,11 @@ namespace LinkManagerPro.Controllers
 
             return View(link);
         }
+    }
+
+    public class IpInfo
+    {
+        public string? status { get; set; }
+        public string? country { get; set; }
     }
 }
