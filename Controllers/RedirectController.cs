@@ -39,18 +39,23 @@ namespace LinkManagerPro.Controllers
             // 4. تحديد البلد (إجبار الاسم الكامل بدلاً من الرمز)
             string country = "Unknown";
             // إذا أردت الاسم الكامل دائماً، استدعِ الـ API مباشرة وتجاهل رأس cf-ipcountry
-            if (!string.IsNullOrEmpty(realIp) && realIp != "::1" && !realIp.StartsWith("10."))
+            if (country == "Unknown" && !string.IsNullOrEmpty(realIp) && realIp != "::1" && !realIp.StartsWith("10."))
             {
                 try
                 {
                     using var client = new HttpClient();
                     client.Timeout = TimeSpan.FromSeconds(2);
-                    var result = await client.GetFromJsonAsync<IpInfo>($"http://ip-api.com/json/{realIp}");
-                    if (result != null && result.status == "success") country = result.country;
+                    // نستخدم https الآن بأمان، والرابط الجديد
+                    var result = await client.GetFromJsonAsync<IpInfo>($"https://freeipapi.com/api/json/{realIp}");
+                    if (result != null && !string.IsNullOrEmpty(result.countryName))
+                    {
+                        country = result.countryName;
+                    }
                 }
                 catch { }
             }
 
+            //if (result != null && result.status == "success") country = result.country;
             // إذا فشل الـ API، نستخدم الرمز القادم من Render كحل أخير
             if (country == "Unknown")
             {
@@ -123,6 +128,6 @@ namespace LinkManagerPro.Controllers
     public class IpInfo
     {
         public string? status { get; set; }
-        public string? country { get; set; }
+        public string? countryName { get; set; }
     }
 }
