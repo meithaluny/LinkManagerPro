@@ -1,15 +1,23 @@
 ﻿using LinkManagerPro.Data;
 using LinkManagerPro.Models;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Microsoft.AspNetCore.HttpOverrides; // 1. إضافة هذه المكتبة
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 2. إعدادات معالجة البروكسي (Render) - أضف هذا الجزء هنا
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Render يستخدم بروكسي خارجي، لذا نمسح الشبكات المعروفة ليثق به
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// إضافة Authentication
 builder.Services.AddAuthentication("Cookies")
     .AddCookie("Cookies", options =>
     {
@@ -22,6 +30,9 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// 3. تفعيل معالجة البروكسي - يجب أن يكون في البداية تماماً قبل أي Middleware آخر
+app.UseForwardedHeaders();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -31,20 +42,20 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Redirect route (بدون حماية)
 app.MapControllerRoute(
     name: "redirect",
     pattern: "p/{slug}",
     defaults: new { controller = "Redirect", action = "Index" });
 
-// جميع الروابط الأخرى
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
+
+app.Run();
+
 
 //// إنشاء قاعدة البيانات والمستخدم الافتراضي
 //using (var scope = app.Services.CreateScope())
@@ -67,4 +78,4 @@ app.MapControllerRoute(
 //    }
 //}
 
-app.Run();
+
