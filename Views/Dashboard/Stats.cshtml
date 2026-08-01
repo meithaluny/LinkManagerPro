@@ -1,0 +1,77 @@
+﻿@model LinkManagerPro.Models.Link
+@{
+    ViewData["Title"] = "إحصائيات الرابط: " + Model.Title;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📊 إحصائيات: @Model.Title</h2>
+        <a asp-action="Index" class="btn btn-secondary">العودة للوحة التحكم</a>
+    </div>
+
+    <div class="row">
+        <!-- كرت إجمالي النقرات -->
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-primary shadow">
+                <div class="card-body text-center">
+                    <h5 class="card-title">إجمالي النقرات</h5>
+                    <p class="display-4 font-weight-bold">@Model.ClickCount</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- رسم بياني للمنصات -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">المنصات (Facebook, Instagram...)</div>
+                <div class="card-body">
+                    <canvas id="platformChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- رسم بياني للدول -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">توزيع الدول</div>
+                <div class="card-body">
+                    <canvas id="countryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // بيانات المنصات
+        const platformData = @Html.Raw(Json.Serialize(ViewBag.PlatformStats));
+        new Chart(document.getElementById('platformChart'), {
+            type: 'pie',
+            data: {
+                labels: platformData.map(x => x.name),
+                datasets: [{
+                    data: platformData.map(x => x.count),
+                    backgroundColor: ['#3b5998', '#e1306c', '#ff0000', '#1da1f2', '#25d366', '#888']
+                }]
+            }
+        });
+
+        // بيانات الدول
+        const countryData = @Html.Raw(Json.Serialize(ViewBag.CountryStats));
+        new Chart(document.getElementById('countryChart'), {
+            type: 'bar',
+            data: {
+                labels: countryData.map(x => x.name),
+                datasets: [{
+                    label: 'عدد النقرات',
+                    data: countryData.map(x => x.count),
+                    backgroundColor: '#28a745'
+                }]
+            }
+        });
+    </script>
+}

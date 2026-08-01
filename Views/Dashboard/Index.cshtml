@@ -43,6 +43,7 @@
                             </td>
                             <td><span class="badge bg-info">@link.ClickCount</span></td>
                             <td>
+                                <a class="btn btn-sm btn-info text-white" asp-action="Stats" asp-route-id="@link.Id">📊 إحصائيات</a>
                                 <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@link.Id">تعديل</a>
                                 <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@link.Id">حذف</a>
                             </td>

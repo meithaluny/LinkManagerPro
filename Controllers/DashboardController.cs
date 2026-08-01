@@ -125,5 +125,34 @@ namespace LinkManagerPro.Controllers
         {
             return Guid.NewGuid().ToString().Substring(0, 8);
         }
+
+        public async Task<IActionResult> Stats(int id)
+        {
+            var link = await _context.Links
+                .Include(l => l.Clicks)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (link == null) return NotFound();
+
+            // إحصائيات الدول
+            var countryStats = link.Clicks
+                .GroupBy(c => c.Country ?? "Unknown")
+                .Select(g => new { Name = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToList();
+
+            // إحصائيات المنصات
+            var platformStats = link.Clicks
+                .GroupBy(c => c.Platform ?? "Direct")
+                .Select(g => new { Name = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToList();
+
+            ViewBag.CountryStats = countryStats;
+            ViewBag.PlatformStats = platformStats;
+
+            return View(link);
+        }
+
     }
 }
