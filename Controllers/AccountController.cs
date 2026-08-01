@@ -1,9 +1,12 @@
 ﻿using LinkManagerPro.Data;
 using LinkManagerPro.Models;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using BCrypt.Net;
+using Microsoft.EntityFrameworkCore;
 
 namespace LinkManagerPro.Controllers
 {
@@ -20,7 +23,7 @@ namespace LinkManagerPro.Controllers
         public IActionResult Login()
         {
             var x = BCrypt.Net.BCrypt.HashPassword("admin123").ToString();
-            ViewBag.ahmad=x;
+            ViewBag.ahmad = x;
             return View();
         }
 
@@ -72,11 +75,43 @@ namespace LinkManagerPro.Controllers
             return RedirectToAction("Index", "Dashboard");
         }
 
+        
+
+
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync("Cookies");
-            return RedirectToAction("Login");
+            return RedirectToAction("Login", "Account");
+        }
+
+        [Authorize]
+        public IActionResult ChangePassword() => View();
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(string oldPassword, string newPassword, string confirmPassword)
+        {
+            if (newPassword != confirmPassword)
+            {
+                ModelState.AddModelError("", "كلمة السر الجديدة غير متطابقة.");
+                return View();
+            }
+
+            var username = User.Identity.Name;
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(oldPassword, user.PasswordHash))
+            {
+                ModelState.AddModelError("", "كلمة السر القديمة غير صحيحة.");
+                return View();
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "تم تغيير كلمة السر بنجاح!";
+            return RedirectToAction("Index", "Dashboard");
         }
     }
 }
