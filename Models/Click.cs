@@ -8,6 +8,7 @@
         public string? UserAgent { get; set; }  // ← أضف ?
         public string? IpAddress { get; set; }
         public string? Country { get; set; }
+        public string? Platform { get; set; }
         public Link? Link { get; set; }
     }
 

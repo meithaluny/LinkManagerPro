@@ -20,62 +20,51 @@ namespace LinkManagerPro.Controllers
                 .Include(l => l.Clicks)
                 .FirstOrDefaultAsync(l => l.Slug == slug);
 
-            if (link == null)
-            {
-                return NotFound();
-            }
+            if (link == null) return NotFound();
 
-            // 1. جلب الـ IP الحقيقي (سيعمل بفضل تعديل Program.cs السابق)
-            string? realIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-
-            // 2. تحليل الـ User Agent لمعرفة التطبيق
+            string realIp = HttpContext.Connection.RemoteIpAddress?.ToString();
             string ua = Request.Headers["User-Agent"].ToString();
-            string platformInfo = "";
-            if (ua.Contains("FB4A") || ua.Contains("FB_IAB")) platformInfo = " [Facebook App]";
-            else if (ua.Contains("Instagram")) platformInfo = " [Instagram App]";
 
-            // 3. جلب اسم البلد
-            // نحاول أولاً جلب البلد من Cloudflare/Render إذا كان متوفراً (سريع جداً)
-            string country = Request.Headers["cf-ipcountry"].FirstOrDefault()
-                             ?? Request.Headers["X-Vercel-IP-Country"].FirstOrDefault()
-                             ?? "Unknown";
+            // --- منطق تحديد المنصة ---
+            string platform = "Direct/Browser";
+            if (ua.Contains("FB4A") || ua.Contains("FBIOS") || ua.Contains("FB_IAB")) platform = "Facebook";
+            else if (ua.Contains("Instagram")) platform = "Instagram";
+            else if (ua.Contains("TikTok")) platform = "TikTok";
+            else if (ua.Contains("Twitter") || ua.Contains("t.co")) platform = "Twitter/X";
+            else if (ua.Contains("WhatsApp")) platform = "WhatsApp";
+            else if (ua.Contains("Snapchat")) platform = "Snapchat";
 
-            // إذا لم نجد البلد وكان الـ IP حقيقياً، نستخدم API خارجي بسيط
-            if (country == "Unknown" && !string.IsNullOrEmpty(realIp) && realIp != "::1" && realIp != "127.0.0.1")
+            // --- منطق تحديد البلد (المطور) ---
+            string country = Request.Headers["cf-ipcountry"].FirstOrDefault() ?? "Unknown";
+
+            if (country == "Unknown" && !string.IsNullOrEmpty(realIp) && realIp != "::1")
             {
                 try
                 {
-                    using (var client = new HttpClient())
-                    {
-                        client.Timeout = TimeSpan.FromSeconds(2); // مهلة قصيرة لضمان عدم تأخير الزائر
-                        var result = await client.GetFromJsonAsync<IpInfo>($"http://ip-api.com/json/{realIp}");
-                        if (result != null && result.status == "success")
-                        {
-                            country = result.country;
-                        }
-                    }
+                    using var client = new HttpClient();
+                    client.Timeout = TimeSpan.FromSeconds(2);
+                    var result = await client.GetFromJsonAsync<IpInfo>($"http://ip-api.com/json/{realIp}");
+                    if (result != null && result.status == "success") country = result.country;
                 }
-                catch
-                {
-                    // في حال فشل الـ API، نترك البلد "Unknown" لكي لا يتوقف الموقع عن العمل
-                }
+                catch { }
             }
 
-            // 4. تسجيل النقرة مع البيانات الجديدة
+            // --- تسجيل النقرة ---
             var click = new Click
             {
                 LinkId = link.Id,
                 ClickedAt = DateTime.UtcNow,
-                UserAgent = ua + platformInfo,
+                UserAgent = ua,
                 IpAddress = realIp,
-                Country = country // القيمة الجديدة التي أضفتها أنت
+                Country = country,
+                Platform = platform // تخزين المنصة المحددة
             };
 
             link.ClickCount++;
             _context.Clicks.Add(click);
             await _context.SaveChangesAsync();
 
-            // إعداد علامات Open Graph
+            // إعداد Open Graph
             ViewData["Title"] = link.Title;
             ViewData["Description"] = link.Description;
             ViewData["ImageUrl"] = link.ImageUrl;
@@ -83,6 +72,7 @@ namespace LinkManagerPro.Controllers
 
             return View(link);
         }
+
 
 
         public async Task<IActionResult> Index2(string slug)
