@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string? Title { get; set; }  // ← أضف ?
+        public string? CouponCode { get; set; }  // ← أضف ?
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
         public string? RedirectUrl { get; set; }

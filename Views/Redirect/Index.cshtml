@@ -54,29 +54,120 @@
         .spinner {
             margin: 20px 0;
         }
+
+        .countdown {
+            width: 90px;
+            height: 90px;
+            margin: 20px auto;
+            border-radius: 50%;
+            background: #0d6efd;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .description {
+            direction: rtl;
+            unicode-bidi: plaintext; /* أو embed إذا لم يدعم المتصفح plaintext */
+            text-align: right;
+            white-space: pre-line;
+            line-height: 1.8;
+        }
     </style>
 </head>
 <body>
     <div class="redirect-card">
         <img src="@Model.ImageUrl" alt="@Model.Title" />
-        <h2>@Model.Title</h2>
-        <p class="text-muted">@Model.Description</p>
 
-        <div class="spinner">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">جاري التحميل...</span>
+        <h2>@Model.Title</h2>
+
+        <p class="text-muted description">@Model.Description</p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.CouponCode))
+        {
+            <div class="mt-3 mb-3" dir="ltr">
+
+                <div class="input-group">
+                    <input id="couponCode"
+                           class="form-control text-center fw-bold"
+                           value="@Model.CouponCode"
+                           readonly />
+
+                    <button id="copyBtn"
+                            class="btn btn-primary"
+                            onclick="copyCode()">
+                        📋 انسخ الكود
+                    </button>
+                </div>
+
+                <small id="copyMessage" class="text-success"></small>
+
             </div>
+        }
+        <p class="text-secondary">
+            سيتم تحويلك خلال
+           
+            ثوانٍ...
+        </p>
+        <div class="countdown">
+            <span id="countNumber">15</span>
         </div>
 
-        <p class="text-secondary">جاري إعادة التوجيه...</p>
-        <p class="small">إذا لم يتم التوجيه، <a href="@Model.RedirectUrl">اضغط هنا</a></p>
+        
+
+        <p class="small">
+            إذا لم يتم التوجيه،
+            <a href="@Model.RedirectUrl">
+                اضغط هنا
+            </a>
+        </p>
     </div>
 
     <script>
-        // إعادة التوجيه التلقائي بعد ثانية واحدة 
-        // setTimeout(() => {
-        //     window.location.href = "@Model.RedirectUrl";
-        // }, 10);
+
+        let seconds = 15;
+
+        const countNumber = document.getElementById("countNumber");
+        // const countText = document.getElementById("countText");
+
+        const timer = setInterval(() => {
+
+            seconds--;
+
+            countNumber.innerText = seconds;
+            // countText.innerText = seconds;
+
+            if (seconds <= 0) {
+
+                clearInterval(timer);
+
+                window.location.href = "@Model.RedirectUrl";
+                 //window.location.replace("@Model.RedirectUrl");
+
+            }
+
+        }, 1500);
+
+
+        function copyCode() {
+
+            const code = document.getElementById("couponCode").value;
+
+            navigator.clipboard.writeText(code);
+
+            document.getElementById("copyMessage").innerText = "✅ تم نسخ الكود";
+
+        }
+
     </script>
+    @* <script>
+        // إعادة التوجيه التلقائي بعد ثانية واحدة 
+        setTimeout(() => {
+            window.location.href = "@Model.RedirectUrl";
+        }, 10);
+    </script> *@
 </body>
 </html>

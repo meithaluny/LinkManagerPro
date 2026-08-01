@@ -29,6 +29,12 @@
             </div>
 
             <div class="mb-3">
+                <label asp-for="CouponCode" class="form-label">الكود</label>
+                <input asp-for="CouponCode" class="form-control" required />
+                <span asp-validation-for="CouponCode" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
                 <label asp-for="ImageUrl" class="form-label">رابط الصورة</label>
                 <input asp-for="ImageUrl" class="form-control" type="url" required />
                 <span asp-validation-for="ImageUrl" class="text-danger"></span>
