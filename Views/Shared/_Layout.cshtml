@@ -7,54 +7,83 @@
     @* <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
  *@
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    @* <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> *@
+    <link href="~/lib/bootstrap-5.3.8-dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+
+
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @* <link rel="stylesheet" href="~/WebApplication2.styles.css" asp-append-version="true" /> *@
 
 </head>
 <body>
 
-
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">Link Manager Pro</a>
+    @* <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">Link Manager Pro</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Dashboard" asp-action="Index">لوحة التحكم</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="Privacy">الخصوصية</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav> *@
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <!-- 1. شعار الموقع سيبقى في اليمين -->
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">Link Manager Pro</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- 2. القائمة الأولى (الروابط): نستخدم me-auto لدفع ما بعدها لليسار -->
+                <!-- me-auto تعني Margin End Auto، وفي العربية (RTL) النهاية هي جهة اليسار -->
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Dashboard" asp-action="Index">لوحة التحكم</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="Privacy">الخصوصية</a>
+                    </li>
                 </ul>
-                <ul class="navbar-nav ms-auto">
+
+                <!-- 3. القائمة الثانية (Admin): ستنجذب تلقائياً لأقصى اليسار -->
+                <ul class="navbar-nav">
                     @if (User.Identity.IsAuthenticated)
                     {
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                مرحباً، @User.Identity.Name
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Admin 👤
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <!-- dropdown-menu-end تضمن ظهور القائمة المنسدلة بشكل صحيح جهة اليسار -->
+                            <ul class="dropdown-menu dropdown-menu-end text-end shadow" aria-labelledby="navbarDropdown">
                                 <li><a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">🔑 تغيير كلمة السر</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    <form asp-controller="Account" asp-action="Logout" method="post" class="p-0 m-0">
                                         <button type="submit" class="dropdown-item text-danger">🚪 تسجيل الخروج</button>
                                     </form>
                                 </li>
                             </ul>
                         </li>
                     }
-                    else
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Account" asp-action="Login">تسجيل الدخول</a>
-                        </li>
-                    }
                 </ul>
             </div>
         </div>
     </nav>
+
+
+
 
 
     <main role="main" class="pb-3">
@@ -74,7 +103,9 @@
     @await RenderSectionAsync("Scripts", required: false) *@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @* <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script> *@
+    <script src="~/lib/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 

@@ -3,19 +3,42 @@
     ViewData["Title"] = "إحصائيات الرابط: " + Model.Title;
 }
 
+
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>📊 إحصائيات: @Model.Title</h2>
-        <a asp-action="Index" class="btn btn-secondary">العودة للوحة التحكم</a>
+        @* <a asp-action="Index" class="btn btn-secondary">العودة للوحة التحكم</a> *@
     </div>
 
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <div class="col-md-4">
+                    <label class="form-label">من تاريخ:</label>
+                    <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">إلى تاريخ:</label>
+                    <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate" />
+                </div>
+
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">🔍 تطبيق الفلتر</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- تحديث كرت إجمالي النقرات ليستخدم ViewBag.TotalClicks المفلتر -->
     <div class="row">
-        <!-- كرت إجمالي النقرات -->
         <div class="col-md-4 mb-4">
             <div class="card text-white bg-primary shadow">
                 <div class="card-body text-center">
-                    <h5 class="card-title">إجمالي النقرات</h5>
-                    <p class="display-4 font-weight-bold">@Model.ClickCount</p>
+                    <h5 class="card-title">إجمالي النقرات في هذه الفترة</h5>
+                    <p class="display-4 font-weight-bold">@ViewBag.TotalClicks</p>
                 </div>
             </div>
         </div>

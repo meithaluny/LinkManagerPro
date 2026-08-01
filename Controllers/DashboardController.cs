@@ -126,23 +126,40 @@ namespace LinkManagerPro.Controllers
             return Guid.NewGuid().ToString().Substring(0, 8);
         }
 
-        public async Task<IActionResult> Stats(int id)
+        public async Task<IActionResult> Stats(int id, DateTime? startDate, DateTime? endDate)
         {
             var link = await _context.Links
-                .Include(l => l.Clicks)
                 .FirstOrDefaultAsync(l => l.Id == id);
 
             if (link == null) return NotFound();
 
-            // إحصائيات الدول
-            var countryStats = link.Clicks
+            // نبدأ بالاستعلام عن النقرات الخاصة بهذا الرابط
+            var clicksQuery = _context.Clicks.Where(c => c.LinkId == id).AsQueryable();
+
+            // تطبيق فلتر تاريخ البداية إذا وجد
+            if (startDate.HasValue)
+            {
+                clicksQuery = clicksQuery.Where(c => c.ClickedAt >= DateTime.SpecifyKind(startDate.Value, DateTimeKind.Utc));
+            }
+
+            // تطبيق فلتر تاريخ النهاية إذا وجد (نضيف يوماً واحداً ليشمل اليوم المختار بالكامل)
+            if (endDate.HasValue)
+            {
+                var endOfDay = endDate.Value.Date.AddDays(1).AddTicks(-1);
+                clicksQuery = clicksQuery.Where(c => c.ClickedAt <= DateTime.SpecifyKind(endOfDay, DateTimeKind.Utc));
+            }
+
+            var filteredClicks = await clicksQuery.ToListAsync();
+
+            // إحصائيات الدول بناءً على البيانات المفلترة
+            var countryStats = filteredClicks
                 .GroupBy(c => c.Country ?? "Unknown")
                 .Select(g => new { Name = g.Key, Count = g.Count() })
                 .OrderByDescending(x => x.Count)
                 .ToList();
 
-            // إحصائيات المنصات
-            var platformStats = link.Clicks
+            // إحصائيات المنصات بناءً على البيانات المفلترة
+            var platformStats = filteredClicks
                 .GroupBy(c => c.Platform ?? "Direct")
                 .Select(g => new { Name = g.Key, Count = g.Count() })
                 .OrderByDescending(x => x.Count)
@@ -150,9 +167,13 @@ namespace LinkManagerPro.Controllers
 
             ViewBag.CountryStats = countryStats;
             ViewBag.PlatformStats = platformStats;
+            ViewBag.TotalClicks = filteredClicks.Count;
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
 
             return View(link);
         }
+
 
     }
 }
