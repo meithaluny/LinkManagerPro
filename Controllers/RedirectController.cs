@@ -22,22 +22,24 @@ namespace LinkManagerPro.Controllers
 
             if (link == null) return NotFound();
 
-            string realIp = HttpContext.Connection.RemoteIpAddress?.ToString();
             string ua = Request.Headers["User-Agent"].ToString();
 
-            // --- منطق تحديد المنصة ---
+            // 1. فلترة الروبوتات (Bots) - لا نحتسب نقرة إذا كان الزائر روبوت
+            bool isBot = ua.Contains("facebookexternalhit") || ua.Contains("Googlebot") || ua.Contains("Twitterbot");
+
+            // 2. جلب الـ IP الحقيقي من رأس X-Forwarded-For مباشرة (أكثر دقة على Render)
+            string realIp = Request.Headers["X-Forwarded-For"].FirstOrDefault()?? HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            // 3. تحديد المنصة
             string platform = "Direct/Browser";
             if (ua.Contains("FB4A") || ua.Contains("FBIOS") || ua.Contains("FB_IAB")) platform = "Facebook";
             else if (ua.Contains("Instagram")) platform = "Instagram";
-            else if (ua.Contains("TikTok")) platform = "TikTok";
-            else if (ua.Contains("Twitter") || ua.Contains("t.co")) platform = "Twitter/X";
-            else if (ua.Contains("WhatsApp")) platform = "WhatsApp";
-            else if (ua.Contains("Snapchat")) platform = "Snapchat";
+            else if (isBot) platform = "Facebook Bot (Preview)"; // تمييز الروبوت
 
-            // --- منطق تحديد البلد (المطور) ---
-            string country = Request.Headers["cf-ipcountry"].FirstOrDefault() ?? "Unknown";
-
-            if (country == "Unknown" && !string.IsNullOrEmpty(realIp) && realIp != "::1")
+            // 4. تحديد البلد (إجبار الاسم الكامل بدلاً من الرمز)
+            string country = "Unknown";
+            // إذا أردت الاسم الكامل دائماً، استدعِ الـ API مباشرة وتجاهل رأس cf-ipcountry
+            if (!string.IsNullOrEmpty(realIp) && realIp != "::1" && !realIp.StartsWith("10."))
             {
                 try
                 {
@@ -49,22 +51,30 @@ namespace LinkManagerPro.Controllers
                 catch { }
             }
 
-            // --- تسجيل النقرة ---
-            var click = new Click
+            // إذا فشل الـ API، نستخدم الرمز القادم من Render كحل أخير
+            if (country == "Unknown")
             {
-                LinkId = link.Id,
-                ClickedAt = DateTime.UtcNow,
-                UserAgent = ua,
-                IpAddress = realIp,
-                Country = country,
-                Platform = platform // تخزين المنصة المحددة
-            };
+                country = Request.Headers["cf-ipcountry"].FirstOrDefault() ?? "Unknown";
+            }
 
-            link.ClickCount++;
-            _context.Clicks.Add(click);
-            await _context.SaveChangesAsync();
+            // 5. تسجيل النقرة فقط إذا لم يكن روبوتاً (أو سجله مع تمييزه)
+            if (!isBot)
+            {
+                var click = new Click
+                {
+                    LinkId = link.Id,
+                    ClickedAt = DateTime.UtcNow,
+                    UserAgent = ua,
+                    IpAddress = realIp,
+                    Country = country,
+                    Platform = platform
+                };
+                link.ClickCount++;
+                _context.Clicks.Add(click);
+                await _context.SaveChangesAsync();
+            }
 
-            // إعداد Open Graph
+            // إعداد Open Graph (سيظل الروبوت يرى هذه البيانات ليظهر المعاينة)
             ViewData["Title"] = link.Title;
             ViewData["Description"] = link.Description;
             ViewData["ImageUrl"] = link.ImageUrl;
@@ -72,6 +82,7 @@ namespace LinkManagerPro.Controllers
 
             return View(link);
         }
+
 
 
 

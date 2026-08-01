@@ -88,13 +88,23 @@
         new Chart(document.getElementById('countryChart'), {
             type: 'bar',
             data: {
-                labels: countryData.map(x => x.name),
+                labels: countryData.map(x => [x.name, x.count.toString()]),
                 datasets: [{
                     label: 'عدد النقرات',
                     data: countryData.map(x => x.count),
-                    backgroundColor: '#28a745'
+                    backgroundColor: '#28a745',
+                    borderRadius: 5
                 }]
+            },
+            options: {
+                plugins: {
+                    legend: { display: true } // إخفاء الليجند لتوفير مساحة
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
             }
         });
+
     </script>
 }
